@@ -94,3 +94,25 @@ deactivate
 ```
 
 ---
+
+## Running the Streamlit Frontend
+
+Once you have set up the virtual environment and installed all dependencies, you can run the Streamlit frontend. Follow these steps:
+
+### Step 1: Make Sure Backend is Running
+Before running the frontend, ensure that the backend (`backend.py`) is running, as the frontend will send requests to it. Start the backend server with:
+```sh
+python backend.py
+```
+Ensure that it is listening on `http://127.0.0.1:5000`.
+
+### Step 2: Run the Streamlit App
+After the backend is running, open a new terminal window, navigate to the project directory, and run the Streamlit frontend with:
+```sh
+streamlit run frontend.py
+```
+
+This will start the Streamlit app and automatically open it in your default browser (usually at `http://localhost:8501`). If it doesn’t open, you can manually navigate to the provided URL.
+```
+
+---
