@@ -114,5 +114,3 @@ streamlit run frontend.py
 
 This will start the Streamlit app and automatically open it in your default browser (usually at `http://localhost:8501`). If it doesn’t open, you can manually navigate to the provided URL.
 ```
-
----
