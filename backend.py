@@ -1,16 +1,9 @@
 from flask import Flask, jsonify, request
-from google.cloud import aiplatform
-import vertexai
-from vertexai.generative_models import GenerativeModel
 import json
-from dotenv import load_dotenv
 import os
 from flask_cors import CORS
-from google.oauth2 import service_account
 from google import genai
 from google.genai import types
-# Load environment variables
-load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
