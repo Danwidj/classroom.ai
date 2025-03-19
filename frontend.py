@@ -17,32 +17,71 @@ def get_quiz_data(prompt, num_quizzes):
     else:
         return None
 
-# Initialize our own "page" state if it doesn't exist.
+# Initialize session state variables if they don't exist.
 if "page" not in st.session_state:
     st.session_state["page"] = "generator"
+if "quiz_data" not in st.session_state:
+    st.session_state["quiz_data"] = []
+if "user_answers" not in st.session_state:
+    st.session_state["user_answers"] = {}
 
-# Render view based on the session state variable.
-if st.session_state["page"] == "quiz":
-    # Quiz display view
-    st.title("Generated Quizzes")
-    if "quiz_data" not in st.session_state or not st.session_state.quiz_data:
+# final results view
+if st.session_state["page"] == "final":
+    st.title("Quiz Results")
+    if not st.session_state.quiz_data:
         st.error("No quiz data available. Please generate a quiz first.")
     else:
         quiz_data = st.session_state.quiz_data
-        st.subheader("Your Quiz Questions:")
+        user_answers = st.session_state.user_answers
+        score = 0
+        i = 0
         for quiz in quiz_data:
+            st.subheader(f"Question {i+1}")
             st.write(f"**Question:** {quiz['question']}")
             options = quiz.get("options", {})
             for key, value in options.items():
                 st.write(f"{key}: {value}")
-            st.info(f"Correct answer: {quiz['correct']}")
+            correct = quiz["correct"]
+            user_answer = user_answers.get(i, None)
+            if user_answer == correct:
+                st.success(f"Your answer: {user_answer} (Correct)")
+                score += 1
+            else:
+                st.error(f"Your answer: {user_answer} (Incorrect) — Correct answer: {correct}")
             st.write(f"Explanation: {quiz['explanation']}")
             st.markdown("---")
-    
-    if st.button("Go Back"):
+            i += 1
+        st.write(f"**Your Score: {score} out of {len(quiz_data)}**")
+    if st.button("Restart"):
         st.session_state["page"] = "generator"
+        st.session_state["quiz_data"] = []
+        st.session_state["user_answers"] = {}
         st.rerun()
-        
+
+
+# interactive quiz view
+elif st.session_state["page"] == "quiz":
+    st.title("Take the Quiz")
+    if not st.session_state.quiz_data:
+        st.error("No quiz data available. Please generate a quiz first.")
+    else:
+        quiz_data = st.session_state.quiz_data
+        i = 0
+        for quiz in quiz_data:
+            st.subheader(f"Question {i+1}")
+            st.write(quiz["question"])
+            options = quiz.get("options", {})
+            answer = st.radio(
+                f"Select your answer for question {i+1}:",
+                options=list(options.keys()),
+                key=f"q{i}"
+            )
+            st.session_state.user_answers[i] = answer
+            i += 1
+
+        if st.button("Submit Answers"):
+            st.session_state["page"] = "final"
+            st.rerun()
 else:
     # Quiz generation view
     st.title("Quiz Generator")
