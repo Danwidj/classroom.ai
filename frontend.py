@@ -17,24 +17,46 @@ def get_quiz_data(prompt, num_quizzes):
     else:
         return None
 
-# Streamlit UI setup
-st.title("Quiz Generator")
+# Initialize our own "page" state if it doesn't exist.
+if "page" not in st.session_state:
+    st.session_state["page"] = "generator"
 
-# Input fields for user to provide prompt and number of quizzes
-prompt = st.text_input("Enter the quiz prompt", "quiz me about digital transformation")
-num_quizzes = st.number_input("Number of questions", min_value=1, max_value=10, value=3, step=1)
-
-# Button to trigger the quiz generation
-if st.button("Generate Quiz"):
-    if prompt and num_quizzes:
-        quiz_data = get_quiz_data(prompt, num_quizzes)
-        if quiz_data:
-            # Store quiz data in session state for use in the quiz page
-            st.session_state.quiz_data = quiz_data
-            # Redirect to the quiz page using st.set_query_params
-            st.st.query_params(page="quiz")
-            st.experimental_rerun()
-        else:
-            st.error("Error generating quizzes. Please check the backend.")
+# Render view based on the session state variable.
+if st.session_state["page"] == "quiz":
+    # Quiz display view
+    st.title("Generated Quizzes")
+    if "quiz_data" not in st.session_state or not st.session_state.quiz_data:
+        st.error("No quiz data available. Please generate a quiz first.")
     else:
-        st.error("Please provide both a prompt and a number of quizzes.")
+        quiz_data = st.session_state.quiz_data
+        st.subheader("Your Quiz Questions:")
+        for quiz in quiz_data:
+            st.write(f"**Question:** {quiz['question']}")
+            options = quiz.get("options", {})
+            for key, value in options.items():
+                st.write(f"{key}: {value}")
+            st.info(f"Correct answer: {quiz['correct']}")
+            st.write(f"Explanation: {quiz['explanation']}")
+            st.markdown("---")
+    
+    if st.button("Go Back"):
+        st.session_state["page"] = "generator"
+        st.rerun()
+        
+else:
+    # Quiz generation view
+    st.title("Quiz Generator")
+    prompt = st.text_input("Enter the quiz prompt", "quiz me about digital transformation")
+    num_quizzes = st.number_input("Number of questions", min_value=1, max_value=10, value=3, step=1)
+    
+    if st.button("Generate Quiz"):
+        if prompt and num_quizzes:
+            quiz_data = get_quiz_data(prompt, num_quizzes)
+            if quiz_data:
+                st.session_state.quiz_data = quiz_data
+                st.session_state["page"] = "quiz"
+                st.rerun()
+            else:
+                st.error("Error generating quizzes. Please check the backend.")
+        else:
+            st.error("Please provide both a prompt and a number of quizzes.")
