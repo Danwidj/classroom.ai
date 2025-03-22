@@ -49,7 +49,7 @@ def generate(prompt, num_quizzes):
         
         response = client.models.generate_content(
             model=model,
-            contents=prompt_text,
+            contents=contents,
             config=generate_content_config
         )
 
@@ -76,4 +76,4 @@ def generate_quiz():
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5011)
