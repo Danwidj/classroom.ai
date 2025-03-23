@@ -1,16 +1,22 @@
 import streamlit as st
 import requests
-import json
 
-# Function to make the POST request to the backend
-def get_quiz_data(prompt, num_quizzes):
-    url = "http://127.0.0.1:5000/generate-quiz"
-    headers = {"Content-Type": "application/json"}
+# Function to make the POST request to the backend using form-data
+def get_quiz_data(prompt, num_quizzes, file=None):
+    url = "http://127.0.0.1:5011/generate-quiz"
+    
+    # Data to be sent in the form body
     data = {
         "prompt": prompt,
         "num_quizzes": num_quizzes  
     }
-    response = requests.post(url, headers=headers, data=json.dumps(data))
+    
+    # Prepare the files dictionary if a file is uploaded
+    files = {}
+    if file is not None:
+        files['file'] = (file.name, file, file.type)
+    
+    response = requests.post(url, data=data, files=files)
     
     if response.status_code == 200:
         return response.json()
@@ -32,7 +38,6 @@ if st.session_state["page"] == "final":
         st.error("No quiz data available. Please generate a quiz first.")
     else:
         quiz_data = st.session_state.quiz_data
-        user_answers = st.session_state.user_answers
         score = 0
         i = 0
         for quiz in quiz_data:
@@ -42,7 +47,7 @@ if st.session_state["page"] == "final":
             for key, value in options.items():
                 st.write(f"{key}: {value}")
             correct = quiz["correct"]
-            user_answer = user_answers.get(i, None)
+            user_answer = st.session_state.user_answers.get(i, None)
             if user_answer == correct:
                 st.success(f"Your answer: {user_answer} (Correct)")
                 score += 1
@@ -62,7 +67,7 @@ if st.session_state["page"] == "final":
 # interactive quiz view
 elif st.session_state["page"] == "quiz":
     st.title("Take the Quiz")
-    if not st.session_state.quiz_data:
+    if not st.session_state.get("quiz_data"):
         st.error("No quiz data available. Please generate a quiz first.")
     else:
         quiz_data = st.session_state.quiz_data
@@ -71,12 +76,14 @@ elif st.session_state["page"] == "quiz":
             st.subheader(f"Question {i+1}")
             st.write(quiz["question"])
             options = quiz.get("options", {})
-            answer = st.radio(
+            # Use a tuple (letter, text) so that we can display full text while keeping the answer letter.
+            selected_option = st.radio(
                 f"Select your answer for question {i+1}:",
-                options=list(options.keys()),
+                options=list(options.items()),
+                format_func=lambda opt: f"{opt[0]}: {opt[1]}",
                 key=f"q{i}"
             )
-            st.session_state.user_answers[i] = answer
+            st.session_state.user_answers[i] = selected_option[0]
             i += 1
 
         if st.button("Submit Answers"):
@@ -88,9 +95,12 @@ else:
     prompt = st.text_input("Enter the quiz prompt", "quiz me about digital transformation")
     num_quizzes = st.number_input("Number of questions", min_value=1, max_value=10, value=3, step=1)
     
+    # File uploader for an optional file upload
+    file = st.file_uploader("Upload a file (optional)")
+    
     if st.button("Generate Quiz"):
         if prompt and num_quizzes:
-            quiz_data = get_quiz_data(prompt, num_quizzes)
+            quiz_data = get_quiz_data(prompt, num_quizzes, file)
             if quiz_data:
                 st.session_state.quiz_data = quiz_data
                 st.session_state["page"] = "quiz"
