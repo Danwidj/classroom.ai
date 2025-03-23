@@ -1,6 +1,10 @@
 import streamlit as st
 import requests
 
+def format_option(opt):
+    letter, text = opt
+    return f"{letter}: {text}"
+
 # Function to make the POST request to the backend using form-data
 def get_quiz_data(prompt, num_quizzes, file=None):
     url = "http://127.0.0.1:5011/generate-quiz"
@@ -80,7 +84,7 @@ elif st.session_state["page"] == "quiz":
             selected_option = st.radio(
                 f"Select your answer for question {i+1}:",
                 options=list(options.items()),
-                format_func=lambda opt: f"{opt[0]}: {opt[1]}",
+                format_func=format_option,
                 key=f"q{i}"
             )
             st.session_state.user_answers[i] = selected_option[0]
