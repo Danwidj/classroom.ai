@@ -39,7 +39,7 @@ def generate(prompt, num_quizzes, questions=None, pdf_path=None):
         # Prepare content parts
         prompt_text = f"\nGenerate {num_quizzes} quizzes for the lecture content, and {prompt}"
         if questions:
-            prompt_text += "\nStudent questions: " + questions
+            prompt_text += "\nEnsure to generate questions that cover the concepts from these questions: " + questions
         parts = [types.Part.from_text(text=prompt_text)]
         
         # Add PDF content if provided
