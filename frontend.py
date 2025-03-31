@@ -6,7 +6,7 @@ def format_option(opt):
     return f"{letter}: {text}"
 
 # Function to make the POST request to the backend using form-data
-def get_quiz_data(prompt, num_quizzes, file=None):
+def get_quiz_data(prompt, num_quizzes, questions_str=None, file=None):
     url = "http://127.0.0.1:5011/generate-quiz"
     
     # Data to be sent in the form body
@@ -14,6 +14,10 @@ def get_quiz_data(prompt, num_quizzes, file=None):
         "prompt": prompt,
         "num_quizzes": num_quizzes  
     }
+    
+    # Include the questions string if provided
+    if questions_str is not None:
+        data["questions"] = questions_str
     
     # Prepare the files dictionary if a file is uploaded
     files = {}
@@ -26,6 +30,14 @@ def get_quiz_data(prompt, num_quizzes, file=None):
         return response.json()
     else:
         return None
+
+
+def upload_student_questions(text_file):
+    if text_file is not None:
+        content = text_file.read().decode("utf-8")
+        questions = content.splitlines()
+        return questions
+    return None
 
 # Initialize session state variables if they don't exist.
 if "page" not in st.session_state:
@@ -99,12 +111,16 @@ else:
     prompt = st.text_input("Enter the quiz prompt", "quiz me about digital transformation")
     num_quizzes = st.number_input("Number of questions", min_value=1, max_value=10, value=3, step=1)
     
+    # File uploader for student questions
+    questions = st.file_uploader("Upload student questions")
+
     # File uploader for an optional file upload
     file = st.file_uploader("Upload a file (optional)")
     
     if st.button("Generate Quiz"):
         if prompt and num_quizzes:
-            quiz_data = get_quiz_data(prompt, num_quizzes, file)
+            questions = upload_student_questions(questions)
+            quiz_data = get_quiz_data(prompt, num_quizzes, questions, file)
             if quiz_data:
                 st.session_state.quiz_data = quiz_data
                 st.session_state["page"] = "quiz"

@@ -20,7 +20,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def generate(prompt, num_quizzes, pdf_path=None):
+def generate(prompt, num_quizzes, questions=None, pdf_path=None):
     try:
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "classroom-ai.json"
         client = genai.Client(
@@ -38,6 +38,8 @@ def generate(prompt, num_quizzes, pdf_path=None):
 
         # Prepare content parts
         prompt_text = f"\nGenerate {num_quizzes} quizzes for the lecture content, and {prompt}"
+        if questions:
+            prompt_text += "\nStudent questions: " + questions
         parts = [types.Part.from_text(text=prompt_text)]
         
         # Add PDF content if provided
@@ -94,6 +96,11 @@ def generate_quiz():
         prompt = data['prompt']
         num_quizzes = int(data['num_quizzes'])
         
+        # Read questions if provided (treating it as a simple string)
+        questions = None
+        if 'questions' in data:
+            questions = data['questions']
+
         # Handle PDF file if uploaded
         pdf_path = None
         if 'file' in request.files:
@@ -108,7 +115,7 @@ def generate_quiz():
         print(pdf_path)
         print(prompt)
         print(num_quizzes)
-        result = generate(prompt, num_quizzes, pdf_path)
+        result = generate(prompt, num_quizzes, questions, pdf_path)
         
         # Clean up uploaded file if it exists
         if pdf_path and os.path.exists(pdf_path):
